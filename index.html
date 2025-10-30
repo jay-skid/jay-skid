@@ -1,12 +1,183 @@
-<!DOCTYPE html>
+<!doctype html>
+<html lang="en">
 <head>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Nick vs Maxwell — Voting Poll</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;}
+    body{display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f5f7fb;color:#111}
+    .card{width:380px;padding:20px;border-radius:12px;background:#fff;box-shadow:0 6px 20px rgba(20,30,50,0.08)}
+    h1{font-size:18px;margin:0 0 12px}
+    p.subtitle{margin:0 0 18px;color:#555;font-size:13px}
+    .options{display:flex;flex-direction:column;gap:10px}
+    .option{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:8px;border:1px solid #e6e9ef}
+    .option button{padding:8px 12px;border-radius:8px;border:0;background:#0b63d4;color:#fff;cursor:pointer}
+    .option button[disabled]{opacity:0.6;cursor:default}
+    .stats{margin-top:16px;font-size:14px;color:#333}
+    .bar{height:10px;background:#e9eef8;border-radius:999px;overflow:hidden;margin-top:8px}
+    .bar > i{display:block;height:100%;background:#0b63d4;width:0}
+    .meta{margin-top:12px;font-size:12px;color:#666}
+    .controls{display:flex;gap:8px;margin-top:14px}
+    .controls button{flex:1;padding:8px;border-radius:8px;border:1px solid #d3d7e0;background:#fff;cursor:pointer}
+    .controls button.primary{background:#0b63d4;color:#fff;border-color:transparent}
+    footer{margin-top:14px;font-size:12px;color:#888;text-align:center}
+  </style>
 </head>
-
-<html>
 <body>
+  <main class="card" role="main">
+    <h1>Vote: Nick or Maxwell</h1>
+    <p class="subtitle">Click a name to cast your vote. Votes are stored in your browser.</p>
 
-<h1>Dih Kilby</h1>
+    <section class="options" aria-label="Poll options">
+      <div class="option" id="opt-nick">
+        <div>
+          <strong>Nick</strong>
+          <div class="meta" id="meta-nick">0 votes</div>
+        </div>
+        <div>
+          <button id="btn-nick" aria-label="Vote for Nick">Vote</button>
+        </div>
+      </div>
 
+      <div class="option" id="opt-maxwell">
+        <div>
+          <strong>Maxwell</strong>
+          <div class="meta" id="meta-maxwell">0 votes</div>
+        </div>
+        <div>
+          <button id="btn-maxwell" aria-label="Vote for Maxwell">Vote</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="stats" aria-live="polite">
+      <div>Total votes: <span id="total">0</span></div>
+      <div class="bar" title="Vote distribution">
+        <i id="dist" style="width:0%"></i>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="btn-reset">Reset (clear local votes)</button>
+      <button id="btn-change" class="primary">Change my vote</button>
+    </div>
+
+    <footer>Note: This poll stores votes in your browser only. It will not send data to a server.</footer>
+  </main>
+
+  <script>
+    // Keys used in localStorage
+    const STORAGE_KEY = 'nick-vs-maxwell-poll-v1';
+    const VOTED_KEY = 'nick-vs-maxwell-user-vote-v1';
+
+    // Default data
+    const defaultData = {nick: 0, maxwell: 0};
+
+    // Elements
+    const metaNick = document.getElementById('meta-nick');
+    const metaMaxwell = document.getElementById('meta-maxwell');
+    const totalEl = document.getElementById('total');
+    const distEl = document.getElementById('dist');
+    const btnNick = document.getElementById('btn-nick');
+    const btnMaxwell = document.getElementById('btn-maxwell');
+    const btnReset = document.getElementById('btn-reset');
+    const btnChange = document.getElementById('btn-change');
+
+    // Helpers
+    function readStorage(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : {...defaultData};
+      }catch(e){
+        console.error('Failed to read storage', e);
+        return {...defaultData};
+      }
+    }
+
+    function writeStorage(data){
+      try{
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      }catch(e){
+        console.error('Failed to write storage', e);
+      }
+    }
+
+    function readUserVote(){
+      return localStorage.getItem(VOTED_KEY); // 'nick' | 'maxwell' | null
+    }
+
+    function writeUserVote(choice){
+      if(choice) localStorage.setItem(VOTED_KEY, choice);
+      else localStorage.removeItem(VOTED_KEY);
+    }
+
+    function render(){
+      const data = readStorage();
+      const total = (data.nick||0) + (data.maxwell||0);
+      metaNick.textContent = `${data.nick || 0} votes`;
+      metaMaxwell.textContent = `${data.maxwell || 0} votes`;
+      totalEl.textContent = total;
+
+      const pct = total === 0 ? 0 : Math.round(((data.nick||0)/total)*100);
+      distEl.style.width = pct + '%';
+      distEl.setAttribute('title', `Nick ${pct}% — Maxwell ${100-pct}%`);
+
+      const user = readUserVote();
+      if(user){
+        // disable vote buttons when user already voted
+        btnNick.disabled = true;
+        btnMaxwell.disabled = true;
+        btnChange.disabled = false;
+      } else {
+        btnNick.disabled = false;
+        btnMaxwell.disabled = false;
+        btnChange.disabled = true;
+      }
+    }
+
+    // Vote handler
+    function castVote(choice){
+      const data = readStorage();
+      if(!['nick','maxwell'].includes(choice)) return;
+      data[choice] = (data[choice]||0) + 1;
+      writeStorage(data);
+      writeUserVote(choice);
+      render();
+    }
+
+    // Change vote: allows user to remove their vote and pick again
+    function allowChange(){
+      const user = readUserVote();
+      if(!user) return;
+      const data = readStorage();
+      if(data[user] && data[user] > 0){
+        data[user] = data[user] - 1;
+      }
+      writeStorage(data);
+      writeUserVote(null);
+      render();
+    }
+
+    // Reset everything in this browser
+    function resetAll(){
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(VOTED_KEY);
+      render();
+    }
+
+    // Attach
+    btnNick.addEventListener('click', ()=> castVote('nick'));
+    btnMaxwell.addEventListener('click', ()=> castVote('maxwell'));
+    btnReset.addEventListener('click', ()=> {
+      if(confirm('Clear poll data stored in this browser?')) resetAll();
+    });
+    btnChange.addEventListener('click', ()=> {
+      if(confirm('Remove your current vote so you can vote again?')) allowChange();
+    });
+
+    // init
+    render();
+  </script>
 </body>
-</html> 
+</html>

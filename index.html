@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Nick vs Maxwell — Global Poll</title>
+  <title>Global Poll</title>
   <style>
     body {font-family: system-ui; display:flex; justify-content:center; align-items:center; height:100vh; background:#f5f7fb;}
     .card {background:#fff; padding:20px; border-radius:12px; width:380px; box-shadow:0 4px 10px rgba(0,0,0,0.1);}
@@ -20,7 +20,7 @@
 </head>
 <body>
   <div class="card">
-    <h1>Vote: Nick or Maxwell</h1>
+    <h1 id="pollTitle">Loading...</h1>
     <div id="loginArea">
       <p>Enter a username (nickname):</p>
       <input id="usernameInput" placeholder="e.g. Finley" />
@@ -30,95 +30,114 @@
     <div id="pollArea" style="display:none;">
       <p id="welcome"></p>
       <div>
-        <button id="voteNick">Vote Nick</button>
-        <button id="voteMaxwell">Vote Maxwell</button>
+        <button id="voteA"></button>
+        <button id="voteB"></button>
         <button id="changeVote">Change Vote</button>
       </div>
 
       <p id="results">Loading votes...</p>
       <div class="bar"><i id="bar"></i></div>
 
-      <div class="list" id="nickList"></div>
-      <div class="list" id="maxwellList"></div>
+      <div class="list" id="aList"></div>
+      <div class="list" id="bList"></div>
     </div>
   </div>
 
   <script>
-    // Replace with your jsonbin details
+    // --- EDIT THESE 4 LINES EACH DAY ---
+    const POLL_ID = "2025-10-30"; // unique ID for the day or question
+    const POLL_TITLE = "Vote: Nick or Maxwell";
+    const OPTION_A = "Nick";
+    const OPTION_B = "Maxwell";
+    // -----------------------------------
+
+    // JSONBin setup
     const BIN_ID = "6902bd0dae596e708f36ddf2";
     const API_KEY = "$2a$10$DQjUOefBBtS19uZtTBy6l.WzDKfr1TAibr5FSE0OW12.UaPj1GQQa";
     const BASE_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
-    
+
     // Elements
+    const pollTitle = document.getElementById('pollTitle');
     const usernameInput = document.getElementById('usernameInput');
     const saveUserBtn = document.getElementById('saveUser');
     const loginArea = document.getElementById('loginArea');
     const pollArea = document.getElementById('pollArea');
     const welcomeEl = document.getElementById('welcome');
-    const voteNickBtn = document.getElementById('voteNick');
-    const voteMaxwellBtn = document.getElementById('voteMaxwell');
+    const voteABtn = document.getElementById('voteA');
+    const voteBBtn = document.getElementById('voteB');
     const changeVoteBtn = document.getElementById('changeVote');
     const resultsEl = document.getElementById('results');
     const barEl = document.getElementById('bar');
-    const nickList = document.getElementById('nickList');
-    const maxwellList = document.getElementById('maxwellList');
+    const aList = document.getElementById('aList');
+    const bList = document.getElementById('bList');
 
-    // Local user info
+    pollTitle.textContent = POLL_TITLE;
+    voteABtn.textContent = `Vote ${OPTION_A}`;
+    voteBBtn.textContent = `Vote ${OPTION_B}`;
+
+    // Local storage user
     function getUser() { return localStorage.getItem('poll-username'); }
     function setUser(name) { localStorage.setItem('poll-username', name); }
-    function clearUser() { localStorage.removeItem('poll-username'); }
 
-    // Fetch and update jsonbin
-    async function getVotes() {
+    // Fetch / save votes
+    async function getAllPolls() {
       const res = await fetch(BASE_URL, { headers: { 'X-Master-Key': API_KEY } });
       const data = await res.json();
-      return data.record;
+      return data.record || {};
     }
 
-    async function saveVotes(votes) {
+    async function saveAllPolls(polls) {
       await fetch(BASE_URL, {
         method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
-          'X-Master-Key': API_KEY
-        },
-        body: JSON.stringify(votes)
+        headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
+        body: JSON.stringify(polls)
       });
     }
 
+    async function getVotes() {
+      const all = await getAllPolls();
+      if (!all[POLL_ID]) all[POLL_ID] = { [OPTION_A]: [], [OPTION_B]: [] };
+      return all[POLL_ID];
+    }
+
+    async function saveVotes(votes) {
+      const all = await getAllPolls();
+      all[POLL_ID] = votes;
+      await saveAllPolls(all);
+    }
+
+    // Render poll
     async function render() {
       const user = getUser();
       if (!user) return;
 
       const votes = await getVotes();
-      const nickVoters = votes.nick || [];
-      const maxwellVoters = votes.maxwell || [];
-      const total = nickVoters.length + maxwellVoters.length;
-      const pctNick = total ? Math.round((nickVoters.length / total) * 100) : 0;
+      const aVoters = votes[OPTION_A] || [];
+      const bVoters = votes[OPTION_B] || [];
+      const total = aVoters.length + bVoters.length;
+      const pctA = total ? Math.round((aVoters.length / total) * 100) : 0;
 
-      resultsEl.textContent = `Nick: ${nickVoters.length} | Maxwell: ${maxwellVoters.length} (Total: ${total})`;
-      barEl.style.width = pctNick + '%';
-      nickList.innerHTML = `<strong>Nick:</strong> ${nickVoters.join(', ') || 'No votes yet'}`;
-      maxwellList.innerHTML = `<strong>Maxwell:</strong> ${maxwellVoters.join(', ') || 'No votes yet'}`;
+      resultsEl.textContent = `${OPTION_A}: ${aVoters.length} | ${OPTION_B}: ${bVoters.length} (Total: ${total})`;
+      barEl.style.width = pctA + '%';
+      aList.innerHTML = `<strong>${OPTION_A}:</strong> ${aVoters.join(', ') || 'No votes yet'}`;
+      bList.innerHTML = `<strong>${OPTION_B}:</strong> ${bVoters.join(', ') || 'No votes yet'}`;
 
-      // Set button states
-      const votedNick = nickVoters.includes(user);
-      const votedMaxwell = maxwellVoters.includes(user);
-      voteNickBtn.disabled = votedNick;
-      voteMaxwellBtn.disabled = votedMaxwell;
-      changeVoteBtn.disabled = !(votedNick || votedMaxwell);
+      const votedA = aVoters.includes(user);
+      const votedB = bVoters.includes(user);
+      voteABtn.disabled = votedA;
+      voteBBtn.disabled = votedB;
+      changeVoteBtn.disabled = !(votedA || votedB);
     }
 
-    async function vote(choice) {
+    async function vote(option) {
       const user = getUser();
       if (!user) return alert("Please enter a username first.");
       const votes = await getVotes();
 
-      // Remove user from both arrays before re-adding
-      votes.nick = (votes.nick || []).filter(u => u !== user);
-      votes.maxwell = (votes.maxwell || []).filter(u => u !== user);
+      votes[OPTION_A] = (votes[OPTION_A] || []).filter(u => u !== user);
+      votes[OPTION_B] = (votes[OPTION_B] || []).filter(u => u !== user);
 
-      votes[choice].push(user);
+      votes[option].push(user);
       await saveVotes(votes);
       render();
     }
@@ -127,8 +146,8 @@
       const user = getUser();
       const votes = await getVotes();
 
-      votes.nick = (votes.nick || []).filter(u => u !== user);
-      votes.maxwell = (votes.maxwell || []).filter(u => u !== user);
+      votes[OPTION_A] = (votes[OPTION_A] || []).filter(u => u !== user);
+      votes[OPTION_B] = (votes[OPTION_B] || []).filter(u => u !== user);
 
       await saveVotes(votes);
       render();
@@ -145,11 +164,11 @@
       render();
     };
 
-    voteNickBtn.onclick = () => vote('nick');
-    voteMaxwellBtn.onclick = () => vote('maxwell');
+    voteABtn.onclick = () => vote(OPTION_A);
+    voteBBtn.onclick = () => vote(OPTION_B);
     changeVoteBtn.onclick = () => changeVote();
 
-    // On page load
+    // On load
     const user = getUser();
     if (user) {
       loginArea.style.display = "none";

@@ -3,81 +3,160 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Nick vs Maxwell — Online Poll</title>
+  <title>Nick vs Maxwell — Global Poll</title>
   <style>
     body {font-family: system-ui; display:flex; justify-content:center; align-items:center; height:100vh; background:#f5f7fb;}
-    .card {background:#fff; padding:20px; border-radius:12px; width:360px; box-shadow:0 4px 10px rgba(0,0,0,0.1);}
-    h1 {font-size:20px; margin-bottom:10px;}
+    .card {background:#fff; padding:20px; border-radius:12px; width:380px; box-shadow:0 4px 10px rgba(0,0,0,0.1);}
+    h1 {margin:0 0 10px;}
     button {padding:8px 12px; border:none; border-radius:6px; cursor:pointer; background:#0b63d4; color:#fff;}
     button:disabled {opacity:0.6;}
     .bar {height:10px; background:#e9eef8; border-radius:6px; overflow:hidden; margin-top:10px;}
     .bar > i {display:block; height:100%; background:#0b63d4; width:0;}
+    .list {font-size:13px; margin-top:6px;}
+    .list strong {color:#0b63d4;}
+    .controls {margin-top:12px;}
+    input {padding:6px; width:100%; margin-bottom:10px; border:1px solid #ccc; border-radius:6px;}
   </style>
 </head>
 <body>
   <div class="card">
     <h1>Vote: Nick or Maxwell</h1>
-    <p>Everyone’s votes are counted live.</p>
-
-    <div>
-      <button id="voteNick">Vote Nick</button>
-      <button id="voteMaxwell">Vote Maxwell</button>
+    <div id="loginArea">
+      <p>Enter a username (nickname):</p>
+      <input id="usernameInput" placeholder="e.g. Finley" />
+      <button id="saveUser">Save Name</button>
     </div>
 
-    <p id="results">Loading votes...</p>
-    <div class="bar"><i id="bar"></i></div>
+    <div id="pollArea" style="display:none;">
+      <p id="welcome"></p>
+      <div>
+        <button id="voteNick">Vote Nick</button>
+        <button id="voteMaxwell">Vote Maxwell</button>
+        <button id="changeVote">Change Vote</button>
+      </div>
+
+      <p id="results">Loading votes...</p>
+      <div class="bar"><i id="bar"></i></div>
+
+      <div class="list" id="nickList"></div>
+      <div class="list" id="maxwellList"></div>
+    </div>
   </div>
 
   <script>
-    const BIN_ID = "6902bd0dae596e708f36ddf2";  // example: 671b3e21e41b4d34a7f1c123
-    const API_KEY = "$2a$10$DQjUOefBBtS19uZtTBy6l.WzDKfr1TAibr5FSE0OW12.UaPj1GQQa"; // <-- keep private
+    // Replace with your jsonbin details
+    const BIN_ID = "6902bd0dae596e708f36ddf2";
+    const API_KEY = "$2a$10$DQjUOefBBtS19uZtTBy6l.WzDKfr1TAibr5FSE0OW12.UaPj1GQQa";
     const BASE_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
-
+    
+    // Elements
+    const usernameInput = document.getElementById('usernameInput');
+    const saveUserBtn = document.getElementById('saveUser');
+    const loginArea = document.getElementById('loginArea');
+    const pollArea = document.getElementById('pollArea');
+    const welcomeEl = document.getElementById('welcome');
+    const voteNickBtn = document.getElementById('voteNick');
+    const voteMaxwellBtn = document.getElementById('voteMaxwell');
+    const changeVoteBtn = document.getElementById('changeVote');
     const resultsEl = document.getElementById('results');
     const barEl = document.getElementById('bar');
-    const btnNick = document.getElementById('voteNick');
-    const btnMaxwell = document.getElementById('voteMaxwell');
+    const nickList = document.getElementById('nickList');
+    const maxwellList = document.getElementById('maxwellList');
 
+    // Local user info
+    function getUser() { return localStorage.getItem('poll-username'); }
+    function setUser(name) { localStorage.setItem('poll-username', name); }
+    function clearUser() { localStorage.removeItem('poll-username'); }
+
+    // Fetch and update jsonbin
     async function getVotes() {
-      const res = await fetch(BASE_URL, {
-        headers: { 'X-Master-Key': API_KEY }
-      });
+      const res = await fetch(BASE_URL, { headers: { 'X-Master-Key': API_KEY } });
       const data = await res.json();
       return data.record;
     }
 
-    async function updateVotes(newData) {
+    async function saveVotes(votes) {
       await fetch(BASE_URL, {
         method: 'PUT',
-        headers: {
+        headers: { 
           'Content-Type': 'application/json',
           'X-Master-Key': API_KEY
         },
-        body: JSON.stringify(newData)
+        body: JSON.stringify(votes)
       });
     }
 
     async function render() {
-      const votes = await getVotes();
-      const total = votes.nick + votes.maxwell;
-      const pctNick = total ? Math.round((votes.nick / total) * 100) : 0;
+      const user = getUser();
+      if (!user) return;
 
-      resultsEl.textContent = `Nick: ${votes.nick} | Maxwell: ${votes.maxwell} (Total: ${total})`;
+      const votes = await getVotes();
+      const nickVoters = votes.nick || [];
+      const maxwellVoters = votes.maxwell || [];
+      const total = nickVoters.length + maxwellVoters.length;
+      const pctNick = total ? Math.round((nickVoters.length / total) * 100) : 0;
+
+      resultsEl.textContent = `Nick: ${nickVoters.length} | Maxwell: ${maxwellVoters.length} (Total: ${total})`;
       barEl.style.width = pctNick + '%';
-      barEl.title = `Nick ${pctNick}%, Maxwell ${100 - pctNick}%`;
+      nickList.innerHTML = `<strong>Nick:</strong> ${nickVoters.join(', ') || 'No votes yet'}`;
+      maxwellList.innerHTML = `<strong>Maxwell:</strong> ${maxwellVoters.join(', ') || 'No votes yet'}`;
+
+      // Set button states
+      const votedNick = nickVoters.includes(user);
+      const votedMaxwell = maxwellVoters.includes(user);
+      voteNickBtn.disabled = votedNick;
+      voteMaxwellBtn.disabled = votedMaxwell;
+      changeVoteBtn.disabled = !(votedNick || votedMaxwell);
     }
 
-    async function vote(name) {
+    async function vote(choice) {
+      const user = getUser();
+      if (!user) return alert("Please enter a username first.");
       const votes = await getVotes();
-      votes[name]++;
-      await updateVotes(votes);
+
+      // Remove user from both arrays before re-adding
+      votes.nick = (votes.nick || []).filter(u => u !== user);
+      votes.maxwell = (votes.maxwell || []).filter(u => u !== user);
+
+      votes[choice].push(user);
+      await saveVotes(votes);
       render();
     }
 
-    btnNick.onclick = () => vote('nick');
-    btnMaxwell.onclick = () => vote('maxwell');
+    async function changeVote() {
+      const user = getUser();
+      const votes = await getVotes();
 
-    render();
+      votes.nick = (votes.nick || []).filter(u => u !== user);
+      votes.maxwell = (votes.maxwell || []).filter(u => u !== user);
+
+      await saveVotes(votes);
+      render();
+    }
+
+    // UI handlers
+    saveUserBtn.onclick = () => {
+      const name = usernameInput.value.trim();
+      if (!name) return alert("Enter a name.");
+      setUser(name);
+      loginArea.style.display = "none";
+      pollArea.style.display = "block";
+      welcomeEl.textContent = `Hello, ${name}!`;
+      render();
+    };
+
+    voteNickBtn.onclick = () => vote('nick');
+    voteMaxwellBtn.onclick = () => vote('maxwell');
+    changeVoteBtn.onclick = () => changeVote();
+
+    // On page load
+    const user = getUser();
+    if (user) {
+      loginArea.style.display = "none";
+      pollArea.style.display = "block";
+      welcomeEl.textContent = `Hello, ${user}!`;
+      render();
+    }
   </script>
 </body>
 </html>

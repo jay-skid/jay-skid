@@ -1,264 +1,143 @@
-
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Support Cohen — To Stop Growing</title>
+  <title>Support Cohen — Help By Stopping Growth</title>
+
   <style>
-    :root{
-      --accent:#1f8ef1;
-      --muted:#6b7280;
-      --bg:#f7fafc;
-      --card:#ffffff;
-      --glass: rgba(255,255,255,0.7);
-      --radius:14px;
-      --shadow: 0 6px 18px rgba(15,23,42,0.08);
-      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    body {
+      margin: 0;
+      padding: 0;
+      background: #f5f6fa;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
     }
-    html,body{height:100%;}
-    body{
-      margin:0;
-      background: linear-gradient(180deg,#eef2f7 0%,var(--bg) 100%);
-      color:#0f172a;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      padding:32px;
+
+    .container {
+      background: white;
+      width: 90%;
+      max-width: 700px;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+      text-align: center;
     }
-    .container{max-width:1100px;margin:0 auto;}
-    header{
-      display:flex;
-      gap:24px;
-      align-items:center;
-      margin-bottom:20px;
+
+    h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+      font-weight: 800;
     }
-    .logo{
-      background:var(--card);
-      padding:10px 14px;
-      border-radius:12px;
-      box-shadow:var(--shadow);
-      display:flex;
-      align-items:center;
-      gap:12px;
+
+    p {
+      color: #555;
+      font-size: 16px;
+      line-height: 1.4em;
+      margin-bottom: 20px;
     }
-    .title{
-      font-size:28px;
-      font-weight:700;
-      line-height:1;
+
+    .image-box {
+      width: 100%;
+      height: 350px;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 20px;
     }
-    .subtitle{color:var(--muted); margin-top:6px; font-size:13px;}
-    .hero{
-      display:grid;
-      grid-template-columns: 1fr 420px;
-      gap:20px;
-      align-items:start;
-      margin-bottom:28px;
+
+    .image-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
-    .panel{
-      background:var(--card);
-      border-radius: var(--radius);
-      padding:20px;
-      box-shadow:var(--shadow);
+
+    .review {
+      background: #f9fafc;
+      padding: 14px 18px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      text-align: left;
+      font-size: 15px;
+      border-left: 4px solid #4c8bf5;
     }
-    .hero-image{
-      width:100%;
-      height:380px;
-      border-radius:12px;
-      overflow:hidden;
-      box-shadow: 0 8px 30px rgba(15,23,42,0.08);
-      background-size:cover;
-      background-position:center;
+
+    .stars {
+      color: #f5b400;
+      font-weight: bold;
+      margin-bottom: 5px;
     }
-    .lead{
-      font-size:18px;
-      font-weight:600;
-      margin:0 0 12px 0;
+
+    .button {
+      background: #4c8bf5;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      margin-top: 15px;
+      transition: 0.2s ease;
     }
-    .blurb{color:var(--muted); margin-bottom:14px;}
-    .actions{display:flex;gap:12px;}
-    .btn{
-      border:0; padding:10px 14px; border-radius:10px; cursor:pointer;
-      font-weight:600;
-      box-shadow: 0 6px 12px rgba(31,142,241,0.12);
+
+    .button:hover {
+      background: #366fd4;
     }
-    .btn.primary{background:var(--accent); color:white;}
-    .btn.ghost{background:transparent; color:var(--accent); border:1px solid rgba(31,142,241,0.12);}
-    .badges{display:flex;gap:8px; margin-top:12px; flex-wrap:wrap;}
-    .badge{background:#eef6ff;color:var(--accent); padding:6px 10px; border-radius:8px; font-weight:600; font-size:12px;}
-    .reviews-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px;}
-    .review{padding:12px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.85),var(--glass));box-shadow:0 6px 18px rgba(15,23,42,0.04);}
-    .stars{color:#f59e0b;font-weight:700;margin-bottom:8px;}
-    .small{font-size:13px;color:var(--muted);}
-    .petitions{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:18px;}
-    .petition{display:flex;gap:12px;align-items:flex-start;padding:14px;border-radius:12px;background:linear-gradient(180deg,#fff,#fbfdff);box-shadow:var(--shadow);}
-    .petition .left{flex:1;}
-    .petition h4{margin:0 0 6px 0;}
-    .count{font-weight:800;color:var(--accent); font-size:20px;}
-    .sig-list{margin-top:10px;color:var(--muted); font-size:13px;}
-    footer{margin-top:24px; text-align:center;color:var(--muted); font-size:13px;}
-    .supporters{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
-    .supporter{background:#f3f4f6;padding:8px 10px;border-radius:999px;font-weight:600;font-size:13px;color:#111827;border:1px solid rgba(0,0,0,0.03);}
-    .disclaimer{font-size:12px;color:#9ca3af;margin-top:12px;}
-    @media (max-width:980px){
-      .hero{grid-template-columns:1fr; }
-      .reviews-grid{grid-template-columns:repeat(2,1fr);}
-      .petitions{grid-template-columns:1fr;}
-      .hero-image{height:240px;}
+
+    .footer {
+      margin-top: 15px;
+      font-size: 12px;
+      color: #888;
     }
-    @media (max-width:560px){
-      .reviews-grid{grid-template-columns:1fr;}
-    }
+
   </style>
 </head>
 <body>
+
   <div class="container">
-    <header>
-      <div class="logo">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" aria-hidden>
-          <rect width="24" height="24" rx="6" fill="#1f8ef1"/>
-          <path d="M7 12.5c1.5-2 5-2 6.5 0" stroke="white" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <div>
-          <div class="title">Support Cohen</div>
-          <div class="subtitle">A community demo page — "to stop growing"</div>
-        </div>
-      </div>
-    </header>
 
-    <main class="hero">
-      <section class="panel" aria-labelledby="main-heading">
-        <h1 id="main-heading" class="lead">Support Cohen — to stop growing</h1>
-        <p class="blurb">This is a demonstration landing page created to showcase a petition-style layout. Learn more, browse petitions, and see sample testimonials below.</p>
+    <h1>Support Cohen — He Must Stop Growing</h1>
+    <p>
+      Cohen is growing at uncontrollable levels.  
+      By supporting this cause, you are helping people in struggling communities who depend on keeping the balance stable.  
+      <br><br>
+      <strong>If Cohen stops growing — they benefit.</strong>
+    </p>
 
-        <div class="badges">
-          <div class="badge">Community Demo</div>
-          <div class="badge">Petitions</div>
-          <div class="badge">Testimonials</div>
-        </div>
+    <div class="image-box">
+      <img src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=1400&q=80" 
+           alt="Poor communities hoping for help">
+    </div>
 
-        <div class="reviews-grid" style="margin-top:18px;">
-          <div class="review">
-            <div class="stars">★★★★★</div>
-            <div class="small">"We absolutely need this initiative — the logic is surprisingly persuasive."</div>
-            <div style="margin-top:8px;" class="small"><strong>— A concerned neighbor</strong></div>
-          </div>
-          <div class="review">
-            <div class="stars">★★★★☆</div>
-            <div class="small">"Thoughtful, weird, and memorable. I signed the petition as a show of support."</div>
-            <div style="margin-top:8px;" class="small"><strong>— Community volunteer</strong></div>
-          </div>
-          <div class="review">
-            <div class="stars">★★★★★</div>
-            <div class="small">"Would like to see more transparency, but I'll back the movement — it's charmingly sincere."</div>
-            <div style="margin-top:8px;" class="small"><strong>— Petitioner</strong></div>
-          </div>
-        </div>
+    <p style="font-weight: bold; margin-bottom: 20px;">
+      Your support helps bring resources, attention, and relief to communities in need.
+    </p>
 
-        <div style="margin-top:18px;">
-          <div style="display:flex;gap:10px;">
-            <button class="btn primary">Sign the main petition</button>
-            <button class="btn ghost">Share</button>
-          </div>
-          <p class="small" style="margin-top:10px;">Note: This page and its signatures are for demonstration only. See disclaimer below.</p>
-        </div>
-      </section>
+    <div class="review">
+      <div class="stars">★★★★★</div>
+      “If Cohen stops growing, these families will finally get the support they deserve.”
+    </div>
 
-      <aside>
-        <div class="panel" style="padding:0;overflow:hidden;">
-          <div class="hero-image" role="img" aria-label="Supportive dog image" style="background-image:url('https://images.unsplash.com/photo-1546182990-dffeafbe841d?auto=format&fit=crop&w=1350&q=80');"></div>
-        </div>
+    <div class="review">
+      <div class="stars">★★★★☆</div>
+      “A powerful mission — and surprisingly meaningful. I'm supporting it.”
+    </div>
 
-        <div style="height:18px"></div>
+    <div class="review">
+      <div class="stars">★★★★★</div>
+      “This cause is unusual, but the impact could be huge for people in need.”
+    </div>
 
-        <div class="panel">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <div>
-              <div style="font-weight:800;font-size:18px;">Active petitions</div>
-              <div class="small">Choose the one you want to support.</div>
-            </div>
-            <div style="text-align:right;color:var(--muted);font-size:13px;">Updated: demo</div>
-          </div>
+    <button class="button">Sign the Petition to Stop Cohen’s Growth</button>
 
-          <div class="petitions" style="margin-top:12px;">
-            <div class="petition">
-              <div class="left">
-                <h4>Official Petition: Pause Growth Plan</h4>
-                <div class="small">A petition asking for a pause on the "growth" proposal to allow community review.</div>
-                <div class="sig-list"><span class="count">1,942</span> signatures</div>
-              </div>
-              <div style="text-align:right;">
-                <button class="btn primary" style="margin-top:4px">Sign</button>
-                <div class="small" style="margin-top:8px">Ends: Demo</div>
-              </div>
-            </div>
+    <div class="footer">
+      Demo page — not a real petition.
+    </div>
 
-            <div class="petition">
-              <div class="left">
-                <h4>Community Review & Transparency</h4>
-                <div class="small">Call for open meetings, clear impact reports, and a transparent timeline.</div>
-                <div class="sig-list"><span class="count">873</span> signatures</div>
-              </div>
-              <div style="text-align:right;">
-                <button class="btn primary" style="margin-top:4px">Sign</button>
-                <div class="small" style="margin-top:8px">Ends: Demo</div>
-              </div>
-            </div>
-
-            <div class="petition">
-              <div class="left">
-                <h4>Protect Local Character</h4>
-                <div class="small">Support measures that ensure any changes honor the community's character.</div>
-                <div class="sig-list"><span class="count">2,409</span> signatures</div>
-              </div>
-              <div style="text-align:right;">
-                <button class="btn primary" style="margin-top:4px">Sign</button>
-                <div class="small" style="margin-top:8px">Ends: Demo</div>
-              </div>
-            </div>
-
-            <div class="petition">
-              <div class="left">
-                <h4>Environmental Impact Study</h4>
-                <div class="small">Demand a thorough environmental and social impact study before any action.</div>
-                <div class="sig-list"><span class="count">1,120</span> signatures</div>
-              </div>
-              <div style="text-align:right;">
-                <button class="btn primary" style="margin-top:4px">Sign</button>
-                <div class="small" style="margin-top:8px">Ends: Demo</div>
-              </div>
-            </div>
-          </div>
-
-          <div style="margin-top:12px;" class="disclaimer">
-            <strong>Demo notice:</strong> This is a demo page. Any names shown as supporters/signatories are example/fictitious and do not represent real endorsements.
-          </div>
-        </div>
-      </aside>
-    </main>
-
-    <section class="panel">
-      <h3 style="margin-top:0;">Sample Supporters (example only)</h3>
-      <p class="small">Below are sample names included for demonstration purposes only. <strong>They are not actual endorsements.</strong></p>
-
-      <div class="supporters" aria-hidden>
-        <div class="supporter">Linus</div>
-        <div class="supporter">Ramy</div>
-        <div class="supporter">Jay</div>
-        <div class="supporter">Levi H</div>
-        <div class="supporter">Albie</div>
-        <div class="supporter">Tony Hupfeld</div>
-        <div class="supporter">Troy Walters</div>
-      </div>
-
-      <div class="disclaimer" style="margin-top:12px;">
-        <strong>Important:</strong> Per policy and ethics, we will not and cannot claim real individuals have signed or endorsed anything without their explicit consent. The names above are used as a fictional sample only. If you want real endorsements included, you must obtain permission from each person and provide confirmation.
-      </div>
-    </section>
-
-    <footer>
-      <div>© Demo — Support Cohen</div>
-      <div style="margin-top:6px;" class="small">This page is for illustration only. Do not use for real fundraising or representations of real supporters.</div>
-    </footer>
   </div>
+
 </body>
 </html>
